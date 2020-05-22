@@ -1,0 +1,22 @@
+{
+  "files": {
+    "main.css": "/pmprete/renvm-hackaton/static/css/main.94ad8322.chunk.css",
+    "main.js": "/pmprete/renvm-hackaton/static/js/main.148618e3.chunk.js",
+    "main.js.map": "/pmprete/renvm-hackaton/static/js/main.148618e3.chunk.js.map",
+    "runtime-main.js": "/pmprete/renvm-hackaton/static/js/runtime-main.28fcdb6b.js",
+    "runtime-main.js.map": "/pmprete/renvm-hackaton/static/js/runtime-main.28fcdb6b.js.map",
+    "static/js/2.f32e064f.chunk.js": "/pmprete/renvm-hackaton/static/js/2.f32e064f.chunk.js",
+    "static/js/2.f32e064f.chunk.js.map": "/pmprete/renvm-hackaton/static/js/2.f32e064f.chunk.js.map",
+    "index.html": "/pmprete/renvm-hackaton/index.html",
+    "precache-manifest.c7a060b80862bd579d671ed24171aa85.js": "/pmprete/renvm-hackaton/precache-manifest.c7a060b80862bd579d671ed24171aa85.js",
+    "service-worker.js": "/pmprete/renvm-hackaton/service-worker.js",
+    "static/css/main.94ad8322.chunk.css.map": "/pmprete/renvm-hackaton/static/css/main.94ad8322.chunk.css.map",
+    "static/js/2.f32e064f.chunk.js.LICENSE.txt": "/pmprete/renvm-hackaton/static/js/2.f32e064f.chunk.js.LICENSE.txt"
+  },
+  "entrypoints": [
+    "static/js/runtime-main.28fcdb6b.js",
+    "static/js/2.f32e064f.chunk.js",
+    "static/css/main.94ad8322.chunk.css",
+    "static/js/main.148618e3.chunk.js"
+  ]
+}

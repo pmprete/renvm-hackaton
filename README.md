@@ -1,2 +1,1 @@
-# renvm-hackaton
-BTC to USD 
+# `BTC to USD in your bank account`

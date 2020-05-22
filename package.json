@@ -1,0 +1,42 @@
+{
+  "name": "renvm-hackaton",
+  "version": "0.1.0",
+  "private": true,
+  "homepage": "https://github.com/pmprete/renvm-hackaton",
+  "dependencies": {
+    "@renproject/gateway": "^1.0.0-alpha.6",
+    "react": "^16.13.1",
+    "react-dom": "^16.13.1",
+    "react-scripts": "3.4.1",
+    "web3": "^1.2.7"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build"
+  },
+  "eslintConfig": {
+    "extends": "react-app"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "devDependencies": {
+    "gh-pages": "2.2.0"
+  },
+  "resolutions": {
+    "scrypt": "https://github.com/ren-forks/node-scrypt"
+  }
+}
