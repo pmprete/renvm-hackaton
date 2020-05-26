@@ -3,10 +3,11 @@ import GatewayJS from "@renproject/gateway";
 import Web3 from "web3";
 import './App.css';
 
-import ABI from "./ABI.json";
+import aTokenAbi from "./abi/AToken.json";
 
 // Replace with your contract's address.
-const contractAddress = "0x3aa969d343bd6ae66c4027bb61a382dc96e88150";
+const contractAddress = "0xB005bb5e58878318d559561A49f0b67C616D11F0";//"0x3aa969d343bd6ae66c4027bb61a382dc96e88150";
+const aWBTCAddress = "0xCD5C52C7B30468D16771193C47eAFF43EFc47f5C";
 
 class App extends React.Component {
   constructor(props) {
@@ -80,9 +81,10 @@ class App extends React.Component {
 
   updateBalance = async () => {
     const { web3 } = this.state;
-    const contract = new web3.eth.Contract(ABI, contractAddress);
-    const balance = await contract.methods.balance().call();
-    this.setState({ balance: parseInt(balance.toString()) / 10 ** 8 });
+    const contract = new web3.eth.Contract(aTokenAbi, aWBTCAddress);
+    const account = web3.currentProvider.selectedAddress
+    const balance = await contract.methods.balanceOf(account).call();
+    this.setState({ balance: parseInt(balance.toString()) / 10 ** 18 });
   }
 
   logError = (error) => {
@@ -110,7 +112,7 @@ class App extends React.Component {
         sendTo: contractAddress,
 
         // The name of the function we want to call
-        contractFn: "deposit",
+        contractFn: "depositBtcToAave",
 
         // The nonce is used to guarantee a unique deposit address
         nonce: GatewayJS.utils.randomNonce(),
@@ -151,13 +153,13 @@ class App extends React.Component {
       sendTo: contractAddress,
 
       // The name of the function we want to call
-      contractFn: "withdraw",
+      contractFn: "withdrawFromAaveToBtc",
 
-      // Arguments expected for calling `deposit`
+      // Arguments expected for calling `withdraw`
       contractParams: [
         { name: "_msg", type: "bytes", value: web3.utils.fromAscii(`Withdrawing ${amount} BTC`) },
         { name: "_to", type: "bytes", value: "0x" + Buffer.from(recipient).toString("hex") },
-        { name: "_amount", type: "uint256", value: Math.floor(amount * (10 ** 8)) },
+        { name: "_amount", type: "uint256", value: Math.floor(amount * (10 ** 18)) },
       ],
 
       // Web3 provider for submitting burn to Ethereum
