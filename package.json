@@ -4,7 +4,10 @@
   "private": true,
   "homepage": "https://github.com/pmprete/renvm-hackaton",
   "dependencies": {
+    "@material-ui/core": "^4.9.2",
+    "@material-ui/icons": "^4.9.1",
     "@renproject/gateway": "^1.0.0-alpha.6",
+    "@spyna/react-store": "^1.5.0",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
     "react-scripts": "3.4.1",
