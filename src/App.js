@@ -20,14 +20,12 @@ import { ThemeProvider } from '@material-ui/core/styles';
 import BtcLogo from './img/btc.png'
 import WBtcLogo from './img/wbtc.png'
 import AaveLogo from './img/aave.png'
-import theme from './theme'
 
 import aTokenAbi from "./abi/AToken.json";
-import btcToAaveAbi from "./abi/BtcToAave.json";
 import uniswapRouterAbi from "./abi/UniswapV2Router01.json";
 
 // Replace with your contract's address.
-const BtcToAaveCotractAddress = "0xB005bb5e58878318d559561A49f0b67C616D11F0";
+const BtcToAaveCotractAddress = "0x853fd00e802c2186bd2a1ba5dc94c07ef74b16c3";
 const aWbtcContractAddress = "0xCD5C52C7B30468D16771193C47eAFF43EFc47f5C";
 
 const uniswapRouterContractAddress = "0xf164fC0Ec4E93095b804a4795bBe1e041497b92a";
@@ -56,6 +54,7 @@ class App extends React.Component {
       errorAwbtcMessage: "",
       validBtcExchange: false,
       errorBtcMessage: "",
+      validApproveAwbtc: false,
       gatewayJS: new GatewayJS("testnet"),
     }
   }
@@ -108,18 +107,11 @@ class App extends React.Component {
 
   render = () => {
     const { balanceAwbtc, message, error, errorAwbtcMessage, validAwbtcExchange, selectedTab, exchangeFeeAwbtc, amountAwbtc,
-      renVmFee, errorBtcAddressMessage, btcAddressValid, web3, errorBtcMessage,  validBtcExchange, exchangeFeeBtc, amountBtc
+      renVmFee, errorBtcAddressMessage, btcAddressValid, web3, errorBtcMessage,  validBtcExchange, exchangeFeeBtc, amountBtc,
+      //validApproveAwbtc
     } = this.state;
-    // return (
-    //   <div className="App">
-    //     <p>balanceAwbtc: {balanceAwbtc} BTC</p>
-    //     <p><button onClick={() => this.deposit().catch(this.logError)}>Deposit 0.001 BTC</button></p>
-    //     <p><button onClick={() => this.withdraw().catch(this.logError)}>Withdraw {balanceAwbtc} BTC</button></p>
-    //     <p>{message}</p>
-    //     {error ? <p style={{ color: "red" }}>{error}</p> : null}
-    //   </div>
-    // );
-    return <ThemeProvider theme={theme}>
+
+    return <ThemeProvider>
       <Container maxWidth="sm">
             <div style={{textAlign:"center", border: "1px solid #eee", boxShadow: "0px 0px 30px 0px rgba(0, 0, 0, 0.05)",
                           marginTop: "48px", borderRadius: "4px"}}>
@@ -147,15 +139,16 @@ class App extends React.Component {
                     </Tabs>
                 </Grid>
                 
-                {selectedTab === 0 && <Grid  container >
+                {selectedTab === 0 && <Grid  container style={{marginTop:"15px"}} >
                   <Grid item xs={12}>
                       <TextField
                           style={{ width: "80%", margin:"8px" }}
                           variant="outlined"
                           placeholder='AAVE WBTC Amount'
+                          label="AAVE WBTC Amount"
                           onChange={(event) => {
                               const amount = parseFloat(event.target.value)||0;
-                              this.setState({amountAwbtc: amount});
+                              this.setState({amountAwbtc: amount, validApproveAwbtc:false});
                               this.exchangeFeeFromAWbtcToRenBtc(amount);
                               this.renVmNetworkFee(amount);
                           }}
@@ -173,6 +166,7 @@ class App extends React.Component {
                           style={{ width: "80%", margin:"8px" }}
                           variant="outlined"
                           placeholder='Your BTC Address'
+                          label="Your BTC Address"
                           onChange={(event) => {
                               const value = event.target.value
                               this.validateBtcAddress(value);
@@ -186,7 +180,7 @@ class App extends React.Component {
                                 <span>Exchange Fee</span>
                           </Grid>
                           <Grid item xs={6}>
-                            <span>{amountAwbtc === 0 ? '-': '-'+exchangeFeeAwbtc.toFixed(8) }</span>
+                            <span>{amountAwbtc === 0 ? '-': exchangeFeeAwbtc.toFixed(8) }</span>
                           </Grid>
                         </Grid>
                         <Grid container justify="space-between" style={{ marginLeft:"60px", marginTop: "10px" }}>
@@ -202,16 +196,26 @@ class App extends React.Component {
                                 <span>New Total</span>
                           </Grid>
                           <Grid item xs={6}>
-                                <span>{amountAwbtc === 0 ? '-' : '~'+(amountAwbtc - renVmFee - exchangeFeeAwbtc).toFixed(8)+' BTC'}</span>
+                                <span>{amountAwbtc === 0 ? '-' : '~'+(amountAwbtc - renVmFee + exchangeFeeAwbtc).toFixed(8)+' BTC'}</span>
                           </Grid>
                         </Grid>
                   </Grid>
                   <Grid item xs={12} style={{ width: "80%", margin:"15px" }}>
+                    <Button
+                            disabled={!validAwbtcExchange}
+                            size='large'
+                            fullWidth variant="contained"
+                            color="primary"
+                            onClick={() => this.approveAwbtc().catch(this.logError)}
+                            >
+                          Approve
+                      </Button>
                       <Button
-                          disabled={!validAwbtcExchange || !btcAddressValid}
+                          style={{marginTop:"15px", marginBottom:"15px"}}
+                          disabled={!validAwbtcExchange || !btcAddressValid }
                           size='large'
                           fullWidth variant="contained"
-                          color="primary"
+                          color="secondary"
                           onClick={() => this.withdraw().catch(this.logError)}>
                         Withdraw
                     </Button>
@@ -219,12 +223,13 @@ class App extends React.Component {
                     {error ? <p style={{ color: "red" }}>{error}</p> : null}
                   </Grid>
                 </Grid>}
-                {selectedTab === 1 && <Grid  container >
+                {selectedTab === 1 && <Grid  container style={{marginTop:"15px"}}>
                   <Grid item xs={12}>
                       <TextField
                           style={{ width: "80%", margin:"8px" }}
                           variant="outlined"
                           placeholder='BTC Amount'
+                          label="BTC Amount"
                           onChange={(event) => {
                               const amount = parseFloat(event.target.value)||0;
                               this.setState({amountBtc: amount});
@@ -242,11 +247,14 @@ class App extends React.Component {
                   </Grid>
                   <Grid item xs={12}>
                       <TextField
-                          disabled
                           style={{ width: "80%", margin:"8px" }}
                           variant="outlined"
                           placeholder='Your ETH Address'
-                          value={web3 ? web3.currentProvider.selectedAddress : ''}/>
+                          label="Your ETH Address"
+                          value={web3 ? web3.currentProvider.selectedAddress : ''}
+                          InputProps={{
+                            readOnly: true,
+                          }}/>
                   </Grid>
                   <Grid item xs={12} style={{textAlign:"left"}}>
                         <Grid container justify="space-between" style={{ marginLeft:"60px", marginTop: "10px" }}>
@@ -254,7 +262,7 @@ class App extends React.Component {
                                 <span>Exchange Fee</span>
                           </Grid>
                           <Grid item xs={6}>
-                            <span>{amountBtc === 0 ? '-': '-'+exchangeFeeBtc.toFixed(8) }</span>
+                            <span>{amountBtc === 0 ? '-': exchangeFeeBtc.toFixed(8) }</span>
                           </Grid>
                         </Grid>
                         <Grid container justify="space-between" style={{ marginLeft:"60px", marginTop: "10px" }}>
@@ -270,7 +278,7 @@ class App extends React.Component {
                                 <span>New Total</span>
                           </Grid>
                           <Grid item xs={6}>
-                                <span>{amountBtc === 0 ? '-' : '~'+(amountBtc - renVmFee - exchangeFeeBtc).toFixed(8)+' BTC'}</span>
+                                <span>{amountBtc === 0 ? '-' : '~'+(amountBtc - renVmFee + exchangeFeeBtc).toFixed(8)+' BTC'}</span>
                           </Grid>
                         </Grid>
                   </Grid>
@@ -279,11 +287,20 @@ class App extends React.Component {
                           disabled={!validBtcExchange}
                           size='large'
                           fullWidth variant="contained"
-                          color="primary"
-                          onClick={() => this.deposit().catch(this.logError)}>
+                          color="secondary"
+                          onClick={() => this.deposit().catch(this.logError)}
+                          >
                         Deposit
                     </Button>
-                    <p><a href={"https://testnet.aave.com/dashboard/deposits"} rel="noreferrer noopener" target="_blank">Go to AAVE</a></p>
+                    <Button
+                          style={{marginTop:"15px", marginBottom:"15px"}}
+                          size='large'
+                          fullWidth variant="contained"
+                          color="primary"
+                          onClick={() => window.open("https://testnet.aave.com/dashboard/deposits", "_blank")}
+                          >
+                        Go to AAVE
+                    </Button>
                     <p>{message}</p>
                     {error ? <p style={{ color: "red" }}>{error}</p> : null}
                   </Grid>
@@ -330,7 +347,7 @@ class App extends React.Component {
       this.setState({errorAwbtcMessage: "Slipage too high, try a number lower than 0.001", validAwbtcExchange: false, exchangeFeeAwbtc:0});
       return
     }
-    this.setState({exchangeFeeAwbtc: amountAwbtcFormated - amountRenBtcFormated, validAwbtcExchange: true, errorAwbtcMessage:""});
+    this.setState({exchangeFeeAwbtc: -(amountAwbtcFormated - amountRenBtcFormated), validAwbtcExchange: true, errorAwbtcMessage:""});
   }
 
   exchangeFeeFromRenBtcToAWbtc = async (amountRenBtc) => {
@@ -345,7 +362,7 @@ class App extends React.Component {
       return
     }
     const contract = new web3.eth.Contract(uniswapRouterAbi, uniswapRouterContractAddress);
-    const amountInStaoshi = (amountRenBtcFormated * 10**8).toString();
+    const amountInStaoshi = Math.round(amountRenBtcFormated*10**8).toString()
     const amountByPath = await contract.methods.getAmountsOut(amountInStaoshi, [renBtcContractAddress, wbtcContractAddress]).call();
     const amountWbtc = amountByPath[1]
     const amountWbtcFormated = web3.utils.fromWei(amountWbtc.toString());
@@ -353,7 +370,7 @@ class App extends React.Component {
       this.setState({errorBtcMessage: "Slipage too high, try a number lower than 0.001", validBtcExchange: false, exchangeFeeBtc:0});
       return
     }
-    this.setState({exchangeFeeBtc: amountRenBtcFormated - amountWbtcFormated, validBtcExchange: true, errorBtcMessage:""});
+    this.setState({exchangeFeeBtc: -(amountRenBtcFormated - amountWbtcFormated), validBtcExchange: true, errorBtcMessage:""});
   }
 
   validateBtcAddress = async (address) => {
@@ -386,7 +403,7 @@ class App extends React.Component {
         sendToken: GatewayJS.Tokens.BTC.Btc2Eth,
 
         // Amount of BTC we are sending (in Satoshis)
-        suggestedAmount: Math.floor(amount * (10 ** 8)), // Convert to Satoshis
+        suggestedAmount: Math.round(amount * (10 ** 8)), // Convert to Satoshis
 
         // The contract we want to interact with
         sendTo: BtcToAaveCotractAddress,
@@ -415,19 +432,21 @@ class App extends React.Component {
       this.logError(error);
     }
   }
+  approveAwbtc = async () => {
+    const { web3, balanceAwbtc } = this.state;
+    // First Approve the transfer
+    const contract = new web3.eth.Contract(aTokenAbi, aWbtcContractAddress);
+    const account = web3.currentProvider.selectedAddress
+    const amountInWei = web3.utils.toWei(balanceAwbtc.toString())
+    await contract.methods.approve(BtcToAaveCotractAddress, amountInWei).send({from:account});
+  }
 
   withdraw = async () => {
     const { web3, gatewayJS, balanceAwbtc, btcAddress } = this.state;
 
     const amount = balanceAwbtc;
     const recipient = btcAddress;
-    // First Approve the transfer
-    const contract = new web3.eth.Contract(aTokenAbi, aWbtcContractAddress);
-    const account = web3.currentProvider.selectedAddress
-
     const amountInWei = web3.utils.toWei(amount.toString())
-    await contract.methods.approve(BtcToAaveCotractAddress, amountInWei).send({from:account});
-
 
     // You can surround shiftOut with a try/catch to handle errors.
 
@@ -440,7 +459,7 @@ class App extends React.Component {
       sendTo: BtcToAaveCotractAddress,
 
       // The name of the function we want to call
-      contractFn: "withdrawFromAaveToBtc",
+      contractFn: "withrdawFromAaveToBtc",
 
       // Arguments expected for calling `withdraw`
       contractParams: [

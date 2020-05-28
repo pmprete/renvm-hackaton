@@ -34,8 +34,7 @@ interface IUniswapRouterV2 {
         address to,
         uint deadline
     ) external returns (uint[] memory amounts);
-    function quote(uint amountA, uint reserveA, uint reserveB) external pure returns (uint amountB);
-    function getAmountOut(uint _amountIn, uint reserveIn, uint reserveOut) external pure returns (uint amountOut);
+    function getAmountsOut(uint _amountIn, address[] calldata patht) external pure returns (uint[] memory amounts);
 }
 
 interface IAaveLendingPool {
@@ -47,7 +46,6 @@ interface IAaveLendingPool {
 contract BtcToAave {
     IGatewayRegistry public registry = IGatewayRegistry(0x557e211EC5fc9a6737d2C6b7a1aDe3e0C11A8D5D);
     IERC20 public wBTC = IERC20(0x3b92f58feD223E2cB1bCe4c286BD97e42f2A12EA);
-    IERC20 public usdC = IERC20(0xe22da380ee6B445bb8273C81944ADEB6E8450422);
     IAToken public aWbtc = IAToken(0xCD5C52C7B30468D16771193C47eAFF43EFc47f5C);
     //Uniswap Router between ren btc (testBtc) and WBTC
     IUniswapRouterV2 public uniswapRouter = IUniswapRouterV2(0xf164fC0Ec4E93095b804a4795bBe1e041497b92a);
@@ -72,7 +70,7 @@ contract BtcToAave {
     }
 
     function withrdawFromAaveToBtc(bytes calldata _msg, bytes calldata _to, uint256 _amount) external returns(uint256){
-        uint256 amount = wBtcToAave(_amount);
+        uint256 amount = aAaveToWbtc(_amount);
         amount = swapWbtcToRenBtc(amount);
         amount = withdrawBtc(_msg, _to, amount);
         return amount;
@@ -102,41 +100,37 @@ contract BtcToAave {
         //Send RenBtc to Uniswap
         IERC20 renBTC = registry.getTokenBySymbol("BTC");
         renBTC.approve(address(uniswapRouter), _amountIn);
-        uint256 amountOut = _amountIn - _amountIn / 4; // NO MORE THAN 25% SLIPPAGE
-        amountOut = amountOut * 10**10;
         address[] memory path = new address[](2);
         path[0] = address(renBTC);
         path[1] = address(wBTC);
+        uint256[] memory amountsOut = uniswapRouter.getAmountsOut(_amountIn, path);
         uint[] memory amounts = uniswapRouter.swapExactTokensForTokens(
             _amountIn,
-            amountOut,
+            amountsOut[1],
             path,
             address(this),
             block.timestamp
         );
         //Obtained WBTC
-        amountOut = amounts[1];
-        return amountOut;
+        return amounts[1];
     }
 
     function swapWbtcToRenBtc(uint256 _amountIn) private returns(uint256) {
         //Send the WBTC to Uniswap
         wBTC.approve(address(uniswapRouter), _amountIn);
         IERC20 renBTC = registry.getTokenBySymbol("BTC");
-        uint256 amountOut = _amountIn - _amountIn / 4; // NO MORE THAN 25% SLIPPAGE
-        amountOut = amountOut / 10**10;
         address[] memory path = new address[](2);
         path[0] = address(wBTC);
         path[1] = address(renBTC);
+        uint256[] memory amountsOut = uniswapRouter.getAmountsOut(_amountIn, path);
         uint[] memory amounts = uniswapRouter.swapExactTokensForTokens(
             _amountIn,
-            amountOut,
+            amountsOut[1],
             path,
             address(this),
             block.timestamp
         );
-        amountOut = amounts[1];
-        return amountOut;
+        return amounts[1];
     }
 
     function wBtcToAave(uint256 _amount) private returns(uint256){
@@ -150,10 +144,11 @@ contract BtcToAave {
         return _amount;
     }
 
-    function aAaveToWbtc(uint256 _amount) private {
+    function aAaveToWbtc(uint256 _amount) private returns(uint256) {
         //Withdraw the aWBTC to WBTC, the user needs to approve first
         aWbtc.transferFrom(msg.sender, address(this), _amount);
         aWbtc.redeem(_amount);
+        return _amount;
     }
 
 }
